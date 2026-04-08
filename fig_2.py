@@ -3,9 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 from matplotlib.ticker import LogLocator, NullFormatter, AutoMinorLocator
 from matplotlib.legend_handler import HandlerErrorbar
-
 from matplotlib.lines import Line2D
-
 
 plt.rcParams.update({
     "font.family": "STIXGeneral",
@@ -265,7 +263,7 @@ h_exact = axL1.axhline(
 )
 
 axL1.set_xscale("log")
-axL1.set_ylabel(r"$E_{\rm corr}$ [a.u.]", fontsize=15)
+axL1.set_ylabel(r"$E_{\rm corr}$ [arb. units]", fontsize=15)
 axL1.text(0.97, 0.05, "(a)", transform=axL1.transAxes,
           ha='right', va='bottom', fontweight='bold', fontsize=15)
 
@@ -322,8 +320,8 @@ axR.errorbar(g_ptqmc, ptqmc8,  yerr=err8p, fmt='o', capsize=4, color='C1', marke
 axR.errorbar(g_ptqmc, ptqmc12, yerr=err12, fmt='o', capsize=4, color='C2', markersize=5)
 axR.errorbar(g_ptqmc, ptqmc16, yerr=err16, fmt='o', capsize=4, color='C3', markersize=5)
 
-axR.set_xlabel(r"$g$ [a.u.]", fontsize=15)
-axR.set_ylabel(r"$E_{\rm corr}$ [a.u.]", fontsize=15)
+axR.set_xlabel(r"$g$ [arb. units]", fontsize=15)
+axR.set_ylabel(r"$E_{\rm corr}$ [arb. units]", fontsize=15)
 axR.set_ylim([-2, 2])
 
 axR.yaxis.tick_right()

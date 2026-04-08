@@ -4,7 +4,6 @@ from matplotlib import cm, colors, rcParams
 from matplotlib.gridspec import GridSpec
 from matplotlib.ticker import MultipleLocator, AutoMinorLocator
 from scipy.interpolate import pade
-import numpy as np
 
 plt.rcParams.update({
     "font.family": "STIXGeneral",
@@ -459,12 +458,12 @@ plot_pade(
     shift_mean=-1.0
 )
 
-ax_lt.set_ylabel(r"$E_{\rm corr}$ [a.u.]", fontsize=17)
-ax_lt.legend(frameon=False, loc='lower left', fontsize =12, ncols=2)
+ax_lt.set_ylabel(r"$E_{\rm corr}$ [arb. units]", fontsize=19)
+ax_lt.legend(frameon=False, loc='lower left', fontsize=13.5, ncols=2)
 center_lt = 2.840432 - 2 - 1.1
-ax_lt.set_ylim(center_lt - 10.5, center_lt + 10.5)
+ax_lt.set_ylim(center_lt - 12.5, center_lt + 8.5)
 ax_lt.text(0.98, 0.97, r'$\mathbf{(a)}$ $g = -1.1$', transform=ax_lt.transAxes, 
-           fontsize=18, verticalalignment='top', horizontalalignment='right')
+           fontsize=20, verticalalignment='top', horizontalalignment='right')
 ax_lt.axhline(y=center_lt, color='black', linestyle='--', linewidth=1)
 ax_lt.tick_params(top=True, right=True, labelbottom=False, direction='in')
 ax_lt.minorticks_on()
@@ -474,7 +473,7 @@ ax_lt.xaxis.set_minor_locator(MultipleLocator(1))
 ax_lt.yaxis.set_major_locator(MultipleLocator(3))
 ax_lt.yaxis.set_minor_locator(MultipleLocator(0.6))
 
-ax_lb.set_ylabel(r"$E_{\rm corr}$ [a.u.]", fontsize=17)
+ax_lb.set_ylabel(r"$E_{\rm corr}$ [arb. units]", fontsize=19)
 ax_lb.tick_params(top=True, right=True, direction='in')
 ax_lb.minorticks_on()
 ax_lb.tick_params(which='minor', top=True, right=True, direction='in')
@@ -487,13 +486,13 @@ ax_lb.xaxis.set_minor_locator(MultipleLocator(1))
 ax_lb.yaxis.set_major_locator(MultipleLocator(3))
 ax_lb.yaxis.set_minor_locator(MultipleLocator(0.6))
 
-ax_lb.set_xlabel("Approximation order", fontsize=17)
+ax_lb.set_xlabel("Approximation order", fontsize=19)
 ax_lb.set_xlim(1, 16)
 ax_lb.set_ylim(center_lb - 7.5, center_lb + 7.5)
-ax_lb.legend([line_exact], ['FCI'], frameon=False, loc='lower right', fontsize=15, ncols=1)
+ax_lb.legend([line_exact], ['FCI'], frameon=False, loc='lower right', fontsize=18, ncols=1)
 
 ax_lb.text(0.98, 0.97, r'$\mathbf{(b)}$ $g = +3.0$', transform=ax_lb.transAxes, 
-           fontsize=18, verticalalignment='top', horizontalalignment='right')
+           fontsize=20, verticalalignment='top', horizontalalignment='right')
 
 
 
@@ -560,15 +559,16 @@ ax_rt.errorbar(
     zorder=5
 )
 
-ax_rt.errorbar(g_ptqmc, e_ptqmc, yerr=err_ptqmc, markersize=3.5, linestyle='None', color='#494949FF', marker='d', label='PTQMC(Resummed)')
+ax_rt.errorbar(g_ptqmc, e_ptqmc, yerr=err_ptqmc, markersize=3.5, linestyle='None', color='#494949FF', marker='d', label='PTQMC (Resummed)')
 
 
-ax_rt.set_ylabel(r"$E_{\mathrm{corr}}$ [a.u.]", fontsize=17)
+ax_rt.set_ylabel("$E_{\\mathrm{corr}}$\n[arb. units]", fontsize=19, multialignment='center', va='center')
 ax_rt.yaxis.set_label_position("right")
 ax_rt.yaxis.tick_right()
 
 ax_rt.set_xlim(-1.3 + 1e-3, 1.3)
 ax_rt.set_ylim(-1.0, 0.2)
+ax_rt.set_yticks(np.arange(-1.0, 0.21, 0.2))
 
 ax_rt.tick_params(
     top=True, right=True, left=True, bottom=True,
@@ -578,17 +578,28 @@ ax_rt.minorticks_on()
 ax_rt.tick_params(which="minor", top=True, right=True, left=True, bottom=True, direction="in")
 
 handles, labels = ax_rt.get_legend_handles_labels()
-order = [labels.index(k) for k in [ "PTQMC(Resummed)","FCIQMC", "UCCSD", "IMSRG(3)", "ADC(3)-D", "FCI"]]
+legend_map = dict(zip(labels, handles))
+
+legend_fci = ax_rt.legend(
+    [legend_map["FCI"]],
+    ["FCI"],
+    frameon=False,
+    fontsize=15,
+    loc="upper left"
+)
+ax_rt.add_artist(legend_fci)
+
+order = [labels.index(k) for k in ["PTQMC (Resummed)", "FCIQMC", "UCCSD", "IMSRG(3)", "ADC(3)-D"]]
 ax_rt.legend(
     [handles[i] for i in order],
     [labels[i] for i in order],
     frameon=False,
-    fontsize=13,
+    fontsize=14,
     loc="lower left",
     ncols=1
 )
 ax_rt.text(0.98, 0.97, r'$\mathbf{(c)}$', transform=ax_rt.transAxes, 
-           fontsize=18, verticalalignment='top', horizontalalignment='right')
+           fontsize=20, verticalalignment='top', horizontalalignment='right')
 ax_rb.axhline(0.0, color="black", lw=1.0, alpha=0.6)
 
 ax_rb.plot(
@@ -626,7 +637,7 @@ ax_rb.plot(
     color=COL["ucc"]
 )
 
-ax_rb.set_ylabel(r"$E_{\rm corr} - E_{\rm FCI}$ [a.u.]", fontsize=17)
+ax_rb.set_ylabel("$E_{\\rm corr} - E_{\\rm FCI}$\n[arb. units]", fontsize=19, multialignment='center', va='center')
 ax_rb.yaxis.set_label_position("right")
 ax_rb.yaxis.tick_right()
 
@@ -637,7 +648,7 @@ ax_rb.tick_params(
 ax_rb.minorticks_on()
 ax_rb.tick_params(which="minor", top=True, right=True, left=True, bottom=True, direction="in")
 ax_rb.set_ylim(-0.05, 0.06)
-ax_rb.set_xlabel(r"$g$ [a.u.]", fontsize=17)
+ax_rb.set_xlabel(r"$g$ [arb. units]", fontsize=19)
 
 g_ptqmc = g_ptqmc[::-1]
 e_ptqmc = e_ptqmc[::-1]
@@ -684,5 +695,12 @@ ax_rb.plot(
 
 for ax in [ax_lt, ax_lb, ax_rt, ax_rb]:
     ax.tick_params(axis='both', which='major', labelsize=15)
+
+ax_lt.tick_params(axis='y', which='major', labelsize=17)
+ax_lb.tick_params(axis='y', which='major', labelsize=17)
+ax_lb.tick_params(axis='x', which='major', labelsize=17)
+ax_rb.tick_params(axis='x', which='major', labelsize=17)
+ax_rt.tick_params(axis='y', which='major', labelsize=17)
+ax_rb.tick_params(axis='y', which='major', labelsize=17)
 
 plt.savefig("Figure_3.png", dpi=600, bbox_inches="tight")

@@ -2,13 +2,11 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import numpy as np
 from matplotlib import rcParams
-import matplotlib.pyplot as plt
-import matplotlib.cm as cm
-import numpy as np
-from matplotlib import rcParams
-from matplotlib.ticker import MultipleLocator 
+from matplotlib.ticker import MultipleLocator, FuncFormatter 
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-
+from matplotlib.lines import Line2D
+from matplotlib.colors import BoundaryNorm, ListedColormap
+from matplotlib.cm import ScalarMappable
 
 def main():
     g_list = np.array([-1.3, -1.277, -1.254, -1.231, -1.208, -1.185, -1.162, -1.139, -1.116, -1.093,
@@ -54,6 +52,7 @@ def main():
         "mathtext.fontset": "cm",
         "mathtext.fontset": "stix",
         "font.family": "Times New Roman",
+        "axes.unicode_minus": True,
         "legend.fancybox": True,
         "legend.handletextpad": 0.4,
         "legend.framealpha": 1.0,
@@ -73,18 +72,20 @@ def main():
     ax.xaxis.set_major_locator(MultipleLocator(0.5))
     ax.xaxis.set_minor_locator(MultipleLocator(0.1))
 
-    ax.yaxis.set_major_locator(MultipleLocator(0.1))
+    ax.yaxis.set_major_locator(MultipleLocator(0.2))
     ax.yaxis.set_minor_locator(MultipleLocator(0.02))
 
     ax.tick_params(axis="both", which="both", direction="in", 
                    top=True, bottom=True, left=True, right=True)
 
     ax.tick_params(axis="both", which="major", length=4, width=0.8, labelsize=10)
+    ax.tick_params(axis="x", which="major", labelsize=12)
+    ax.tick_params(axis="y", which="major", labelsize=12)
     ax.tick_params(axis="both", which="minor", length=2, width=0.5)
 
-    ax.set_xlabel(r"$g\; \mathrm{[a.u.]}$", fontsize=12)
-    ax.set_ylabel(r"$E_\mathrm{corr}\; \mathrm{[a.u.]}$", fontsize=12)
-    ax.set_title("(a)", fontsize=12, fontweight='bold')
+    ax.set_xlabel(r"$g\; \mathrm{[arb. units]}$", fontsize=14)
+    ax.set_ylabel(r"$E_\mathrm{corr}\; \mathrm{[arb. units]}$", fontsize=14)
+    ax.set_title("(a)", fontsize=14, fontweight='bold')
 
     ax.set_ylim(-0.6, 0.1)
     ax.set_xlim(-1.3, 0.75)
@@ -92,8 +93,9 @@ def main():
     ax.axhline(0, color='gray', linestyle=':', linewidth=0.6, alpha=0.6)
     orders = range(2, 11) 
     
-    even_colors = cm.Blues(np.linspace(0.4, 0.9, 5))  # 2,4,6,8,10
-    odd_colors = cm.Reds(np.linspace(0.4, 0.9, 4))   # 3,5,7,9
+    even_colors = ["C0", "C2", "C4", "C6", "C9"]
+    odd_colors = ["C1", "C3", "C5", "C7"]
+
 
     if 0 in data:
         ax.plot(g_list, data[0], color='black', linestyle='-', linewidth=1.0, label='FCI')
@@ -106,68 +108,60 @@ def main():
             color = even_colors[even_idx]
             linestyle = '--'  
             even_idx += 1
+            marker = 's'
         else:
             color = odd_colors[odd_idx]
             linestyle = '-'  
             odd_idx += 1
+            marker = 'o'
         
-        lw = 1.0
-        alpha = 0.85
+        lw = 0.8
+        alpha = 1
         
         ax.plot(g_list, y_vals, 
                 color=color, 
                 linewidth=lw, 
                 alpha=alpha,
-                linestyle=linestyle)
+                linestyle=linestyle, marker=marker, markersize=3, markevery=10, markeredgewidth=0)
 
-    from matplotlib.lines import Line2D
     legend_elements = [Line2D([0], [0], color='black', linewidth=1.0, label='FCI')]
-    ax.legend(handles=legend_elements, loc='upper right', fontsize=9, frameon=False)
+    ax.legend(handles=legend_elements, loc='upper right', fontsize=11, frameon=False)
     
-    from matplotlib.cm import ScalarMappable
-    from matplotlib.colors import Normalize
-    from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-    
-    norm_even = Normalize(vmin=2, vmax=10)
-    sm_even = ScalarMappable(cmap=cm.Blues, norm=norm_even)
-    sm_even.set_array([])
 
-    axins_even = inset_axes(
-        ax, width="2.5%", height="30%", loc='lower right',
-        bbox_to_anchor=(-0.12, 0.06, 0.95, 0.95),
+
+    cmap = ListedColormap(["C0", "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C9"])  # 9个离散颜色
+
+    bounds = np.arange(1.5, 10.5 + 1e-9, 1)
+    norm = BoundaryNorm(bounds, cmap.N)
+
+    sm = ScalarMappable(norm=norm, cmap=cmap)
+    sm.set_array([])
+
+    axins = inset_axes(
+        ax,
+        width="60%",
+        height="4%",
+        loc='lower right',
+        bbox_to_anchor=(-0.02, 0.13, 0.95, 0.95),
         bbox_transform=ax.transAxes
     )
 
-    cbar_even = fig.colorbar(
-        sm_even,
-        cax=axins_even,
-        orientation='vertical',
-        spacing='proportional'
+    cbar = fig.colorbar(
+        sm,
+        cax=axins,
+        orientation='horizontal'
     )
 
-    cbar_even.set_ticks([2, 4, 6, 8, 10])
-    cbar_even.ax.tick_params(labelsize=7.5)
-    cbar_even.ax.yaxis.set_ticks_position('left')
-    cbar_even.ax.yaxis.set_label_position('left')
+    cbar.set_ticks([2, 4, 6, 8, 10])
+    cbar.ax.tick_params(labelsize=9.5)
+    cbar.outline.set_linewidth(0.8)
 
-    cbar_even.solids.set_edgecolor('none')  
-    cbar_even.solids.set_linewidth(0)
+    cbar.solids.set_edgecolor("face")
+    cbar.solids.set_linewidth(0)
+    cbar.ax.minorticks_off()
 
-    norm_odd = Normalize(vmin=3, vmax=9)
-    sm_odd = ScalarMappable(cmap=cm.Reds, norm=norm_odd)
-    sm_odd.set_array([])
-    axins_odd = inset_axes(ax, width="2.5%", height="30%", loc='lower right',
-                           bbox_to_anchor=(-0.08, 0.06, 0.95, 0.95), bbox_transform=ax.transAxes)
-    cbar_odd = fig.colorbar(sm_odd, cax=axins_odd, orientation='vertical', drawedges=False)
-    cbar_odd.ax.tick_params(labelsize=7.5)
-    cbar_odd.set_ticks([3, 5, 7, 9])
-    cbar_odd.solids.set_edgecolor("face")
-    cbar_odd.solids.set_linewidth(0)
-    cbar_odd.solids.set_edgecolor("face")
-
-
-    ax.text(0.8, 0.40, 'Orders', transform=ax.transAxes, 
-            fontsize=7, ha='center', va='bottom')
+    ax.text(0.6, 0.25, 'Orders', transform=ax.transAxes, 
+            fontsize=12, ha='center', va='bottom')
     
     g_list_right = np.array([1.5, 1.515,
                        1.53, 1.545, 1.56, 1.575, 1.59, 1.605, 1.62, 1.635, 1.65, 1.665, 1.68, 1.695,
@@ -213,29 +207,32 @@ def main():
     ax.xaxis.set_major_locator(MultipleLocator(0.5)) 
     ax.xaxis.set_minor_locator(MultipleLocator(0.1))
     
-    ax.yaxis.set_major_locator(MultipleLocator(0.5))
+    ax.yaxis.set_major_locator(MultipleLocator(1.0))
     ax.yaxis.set_minor_locator(MultipleLocator(0.1))
+    ax.yaxis.set_major_formatter(FuncFormatter(lambda x, _: f"{x:.1f}".replace("-", "−")))
 
     ax.yaxis.tick_right()
     ax.tick_params(axis="y", labelright=True, labelleft=False)
     ax.yaxis.set_label_position("right")
-    ax.set_ylabel(r"$E_\mathrm{corr}\; \mathrm{[a.u.]}$", fontsize=12)
+    ax.set_ylabel(r"$E_\mathrm{corr}\; \mathrm{[arb. units]}$", fontsize=14)
 
     ax.tick_params(axis="both", which="both", direction="in", 
                    top=True, bottom=True, left=True, right=True)
     ax.tick_params(axis="both", which="major", length=4, width=0.8, labelsize=10)
+    ax.tick_params(axis="x", which="major", labelsize=12)
+    ax.tick_params(axis="y", which="major", labelsize=12)
     ax.tick_params(axis="both", which="minor", length=2, width=0.5)
 
-    ax.set_xlabel(r"$g\; \mathrm{[a.u.]}$", fontsize=12)
-    ax.set_title("(b)", fontsize=12, fontweight='bold')
+    ax.set_xlabel(r"$g\; \mathrm{[arb. units]}$", fontsize=14)
+    ax.set_title("(b)", fontsize=14, fontweight='bold')
 
     ax.set_xlim(1.5, 3.0) 
     ax.set_ylim(-4.5, -0.4)
     
     ax.axvline(2.8, color='gray', linestyle=':', linewidth=1.0, alpha=0.6)
     orders = range(2, 11)
-    even_colors = cm.Blues(np.linspace(0.4, 0.9, 5))  # 2,4,6,8,10
-    odd_colors = cm.Reds(np.linspace(0.4, 0.9, 4))   # 3,5,7,9
+    even_colors = ["C0", "C2", "C4", "C6", "C9"]
+    odd_colors = ["C1", "C3", "C5", "C7"]
     
     ax.plot(g_list_right, data_right[0],color='black', linestyle='-', linewidth=1.0, label="FCI")
     
@@ -248,19 +245,21 @@ def main():
             color = even_colors[even_idx]
             linestyle = '--' 
             even_idx += 1
+            marker = 's'
         else:
             color = odd_colors[odd_idx]
             linestyle = '-'   
             odd_idx += 1
+            marker = 'o'
         
-        lw = 1.0
-        alpha = 0.85
+        lw = 0.8
+        alpha = 1
         
         ax.plot(g_list_right, y_vals, 
                 color=color, 
                 linewidth=lw, 
                 alpha=alpha,
-                linestyle=linestyle)
+                linestyle=linestyle, marker=marker, markersize=3, markevery=10, markeredgewidth=0)
     
     g_target = 2.8
     idx_g = np.argmin(np.abs(g_list_right - g_target))
@@ -292,7 +291,7 @@ def main():
     gray_ecorr = [ecorr_at_g[i] if i <= 4 else ecorr_at_g[4] for i in range(len(orders_inset))]  
     axins.plot(gray_orders, gray_ecorr, color='gray', linestyle='-', linewidth=1.0, alpha=0.6)
     
-    axins.tick_params(axis='y', labelsize=7.5, width=0.6, length=2)
+    axins.tick_params(axis='y', labelsize=8, width=0.6, length=2)
     axins.tick_params(axis='x', labelsize=7, labelbottom=False, labeltop=False, width=0.6, length=2)
     axins.tick_params(axis='both', which='both', direction='in',
                      top=True, bottom=True, left=True, right=True)
@@ -302,9 +301,9 @@ def main():
     for spine in axins.spines.values():
         spine.set_linewidth(0.5)
     axins.text(0.5, 0.85, f'$g={g_target}$', transform=axins.transAxes,
-              fontsize=9, ha='center', va='top')
+              fontsize=11, ha='center', va='top')
     axins.set_ylim(-4.5, 0.2)
-    fig.subplots_adjust(wspace=0.12)
+    fig.subplots_adjust(wspace=0.08)
     
     plt.savefig("Figure_1.png", dpi=600, bbox_inches='tight')
 

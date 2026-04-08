@@ -12,6 +12,40 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from matplotlib.lines import Line2D
 
 
+class _CompatDet:
+    """Fallback class for loading legacy pickle keys (lib.basis.Det)."""
+
+    def __setstate__(self, state):
+        if isinstance(state, dict):
+            self.__dict__.update(state)
+
+    def __hash__(self):
+        items = tuple(sorted(self.__dict__.items()))
+        return hash(items)
+
+    def __eq__(self, other):
+        return isinstance(other, _CompatDet) and self.__dict__ == other.__dict__
+
+
+class _CompatUnpickler(pickle.Unpickler):
+    def find_class(self, module, name):
+        if module == "lib.basis" and name == "Det":
+            return _CompatDet
+        return super().find_class(module, name)
+
+
+def load_pickle_compat(path):
+    with open(path, "rb") as f:
+        try:
+            return pickle.load(f)
+        except ModuleNotFoundError as exc:
+            if exc.name != "lib":
+                raise
+
+    with open(path, "rb") as f:
+        return _CompatUnpickler(f).load()
+
+
 def ini_plot():
     config = {
         "figure.dpi": 600,
@@ -54,7 +88,7 @@ def ini_plot():
 
 ini_plot()
 
-RESULT_DIR = "./PTQMC-PRC/data_fig4/"
+RESULT_DIR = "./data_fig4/"
 ROOT = os.path.abspath(os.path.dirname(__file__))
 PYFCIQMC = os.path.join(ROOT, "pyFCIQMC")
 sys.path.insert(0, PYFCIQMC)
@@ -68,7 +102,7 @@ if len(files) == 0:
     raise RuntimeError(f"No files found in {RESULT_DIR} matching weights_g*.pkl")
 
 with open(os.path.join(RESULT_DIR, files[0]), "rb") as f:
-    data0 = pickle.load(f)
+    data0 = load_pickle_compat(os.path.join(RESULT_DIR, files[0]))
 weights0 = data0["w"]
 MAX_ORDER = len(weights0) - 2
 print(f"[info] detected perturbative orders: w1 ... w{MAX_ORDER}")
@@ -83,7 +117,7 @@ for fname in files:
     g_vals.append(g)
 
     with open(os.path.join(RESULT_DIR, fname), "rb") as f:
-        data = pickle.load(f)
+        data = load_pickle_compat(os.path.join(RESULT_DIR, fname))
 
     weights = data["w"]
     K = len(weights) - 2
@@ -193,7 +227,7 @@ for k in range(2, 11):
 
 ax.set_xlim(np.min(g_vals), np.max(g_vals))
 
-ax.set_xlabel(r"$g$ [a.u.]", fontsize=18)
+ax.set_xlabel(r"$g$ [arb. units]", fontsize=18)
 ax.set_ylabel(r"$e^S$", fontsize=18)
 
 ax.tick_params(direction="in", top=True, right=True)
